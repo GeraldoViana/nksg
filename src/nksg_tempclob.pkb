@@ -44,7 +44,7 @@ is
 
   -- Containers
   gv_index    integer := 1;
-  gt_payload  ArrPaylod;
+  gt_payload  ArrPayload;
 
   ------------------------------------------------------------------
   ------------------------ Private Session -------------------------
