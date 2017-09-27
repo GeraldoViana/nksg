@@ -38,9 +38,9 @@ is
   subtype sqlraw    is raw(2000);       -- keep same as gc_sqlrawub
 
   -- Self types
-  type RecPaylod is record(buffer   plstring,
-                           payload  clob);
-  type ArrPaylod is table of RecPaylod index by pls_integer;
+  type RecPayload is record(buffer   plstring,
+                            payload  clob);
+  type ArrPayload is table of RecPayload index by pls_integer;
 
   -- Containers
   gv_index    integer := 1;
