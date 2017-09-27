@@ -788,13 +788,8 @@ is
                    '  ------------------------ Declare Session -------------------------'                       || nl ||
                    '  ------------------------------------------------------------------'                       || nl ||
                    '  -- Local constants'                                                                       || nl ||
-                   '  nl       constant varchar2(1) := '''                                                      || nl ||
+                   '  nl       constant varchar2(3) := '''                                                      || nl ||
                    ''';'                                                                                        || nl ||
-                   '  gc_limit constant pls_integer := 1e3; -- FORALL collection limit: 1000'                   || nl ||
-                   ''                                                                                           || nl ||
-                   '  -- Local types'                                                                           || nl ||
-                   '  type weak_refcursor is ref cursor;'                                                       || nl ||
-                   '  type plstring_list  is table of plstring index by pls_integer;'                           || nl ||
                    ''                                                                                           || nl ||
                    '  -- Exceptions'                                                                            || nl ||
                    '  lock_timeout     exception;'                                                              || nl ||
@@ -808,7 +803,7 @@ is
                    || '-- ORA-24381: error(s) in array DML'                                                     || nl ||
                    ''                                                                                           || nl ||
                    '  -- Stateful Scalars/Containers'                                                           || nl ||
-                   '  --gt_rowid    plstring_map;    -- keep stateless when no ID PK'                           || nl ||
+                   '  --gt_urowid    urowid_list;'                                                              || nl ||
                    ''                                                                                           || nl ||
                    '  ------------------------------------------------------------------'                       || nl ||
                    '  ------------------------ Private Session -------------------------'                       || nl ||
@@ -895,11 +890,11 @@ is
         if (i = fr_bundle.pk_element.first) then
           lv_buffer := '    if (fr_id.' || lv_column || ' is null) then'                                        || nl ||
                        '      raise_application_error(-20888, ''fr_id.' || lv_column
-                       || ' cannot be null:'' || $$plsql_line);'                                                || nl;
+                       || ' argument cannot be null:'' || $$plsql_line);'                                       || nl;
         else
           lv_buffer := '    elsif (fr_id.' || lv_column || ' is null) then'                                     || nl ||
                        '      raise_application_error(-20888, ''fr_id.' || lv_column
-                       || ' cannot be null:'' || $$plsql_line);'                                                || nl;
+                       || ' argument cannot be null:'' || $$plsql_line);'                                       || nl;
         end if;
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
@@ -923,7 +918,7 @@ is
                    '  ------------------------------------------------------------------'                       || nl ||
                    '  procedure select_row_pvt(fr_data  in out nocopy RecData)'                                 || nl ||
                    '  is'                                                                                       || nl ||
-                   '    lc__    constant varchar2(100) := $$plsql_unit || ''.SELECT_INSTANCE_PVT:'';'           || nl ||
+                   '    lc__    constant varchar2(100) := $$plsql_unit || ''.SELECT_ROW_PVT:'';'                || nl ||
                    '    lv_refcur        weak_refcursor;'                                                       || nl ||
                    '  begin'                                                                                    || nl ||
                    '    open lv_refcur for'                                                                     || nl ||
@@ -1568,7 +1563,7 @@ is
                    '                       fv_rebind  in boolean default false)'                                || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.INSERT_ALL:'';'                    || nl ||
-                   '    lt_rowid         plstring_list;'                                                        || nl ||
+                   '    lt_urowid        urowid_list;'                                                          || nl ||
                    '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
@@ -1639,28 +1634,28 @@ is
           i := fr_bundle.full_element.next(i);
         end loop;
       end if;
-      lv_buffer := '      returning chartorowid(rowid) bulk collect into lt_rowid; '                            || nl ||
+      lv_buffer := '      returning rowid bulk collect into lt_urowid; '                                        || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
                    '    end forall_call;'                                                                       || nl ||
-                   '    ----------------'                                                                       || nl ||
-                   '    << rowid_bind >>'                                                                       || nl ||
-                   '    ----------------'                                                                       || nl ||
+                   '    -------------------'                                                                    || nl ||
+                   '    << rowid_binding >>'                                                                    || nl ||
+                   '    -------------------'                                                                    || nl ||
                    '    begin'                                                                                  || nl ||
-                   '      i := lt_rowid.first;'                                                                 || nl ||
+                   '      i := lt_urowid.first;'                                                                || nl ||
                    '      while (i is not null) loop'                                                           || nl ||
-                   '        ft_data(i).r#wid := lt_rowid(i);'                                                   || nl ||
+                   '        ft_data(i).r#wid := lt_urowid(i);'                                                  || nl ||
                    '        if (fv_rebind) then'                                                                || nl ||
                    '          pragma inline (select_row_pvt, ''YES'');'                                         || nl ||
                    '          select_row_pvt(fr_data => ft_data(i));'                                           || nl ||
                    '        end if;'                                                                            || nl ||
-                   '        i := lt_rowid.next(i);'                                                             || nl ||
+                   '        i := lt_urowid.next(i);'                                                            || nl ||
                    '      end loop;'                                                                            || nl ||
                    '    exception when others then'                                                             || nl ||
-                   '      raise_application_error(-20777, ''<< rowid_bind >>:'' '
+                   '      raise_application_error(-20777, ''<< rowid_binding >>:'' '
                    || ' || $$plsql_line || nl || dbms_utility.format_error_stack);'                             || nl ||
-                   '    end rowid_bind;'                                                                        || nl ||
+                   '    end rowid_binding;'                                                                     || nl ||
                    '  exception when others then'                                                               || nl ||
                    '    raise_application_error(-20777, lc__ || $$plsql_line || nl '
                    || '|| dbms_utility.format_error_stack);'                                                    || nl ||
@@ -1789,7 +1784,7 @@ is
                    '                       fv_rebind  in boolean default false)'                                || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.UPDATE_ALL:'';'                    || nl ||
-                   '    lt_rowid         plstring_list;'                                                        || nl ||
+                   '    lt_urowid        urowid_list;'                                                          || nl ||
                    '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
@@ -1855,28 +1850,28 @@ is
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '      returning rowid bulk collect into lt_rowid;'                                          || nl ||
+      lv_buffer := '      returning rowid bulk collect into lt_urowid;'                                         || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
                    '    end forall_call;'                                                                       || nl ||
-                   '    ----------------'                                                                       || nl ||
-                   '    << rowid_bind >>'                                                                       || nl ||
-                   '    ----------------'                                                                       || nl ||
+                   '    -------------------'                                                                    || nl ||
+                   '    << rowid_binding >>'                                                                    || nl ||
+                   '    -------------------'                                                                    || nl ||
                    '    begin'                                                                                  || nl ||
-                   '      i := lt_rowid.first;'                                                                 || nl ||
+                   '      i := lt_urowid.first;'                                                                || nl ||
                    '      while (i is not null) loop'                                                           || nl ||
-                   '        ft_data(i).r#wid := chartorowid(lt_rowid(i));'                                      || nl ||
+                   '        ft_data(i).r#wid := lt_urowid(i);'                                                  || nl ||
                    '        if (fv_rebind) then'                                                                || nl ||
                    '          pragma inline (select_row_pvt, ''YES'');'                                         || nl ||
                    '          select_row_pvt(fr_data => ft_data(i));'                                           || nl ||
                    '        end if;'                                                                            || nl ||
-                   '        i := lt_rowid.next(i);'                                                             || nl ||
+                   '        i := lt_urowid.next(i);'                                                            || nl ||
                    '      end loop;'                                                                            || nl ||
                    '    exception when others then'                                                             || nl ||
-                   '      raise_application_error(-20777, ''<< rowid_bind >>:'' '
+                   '      raise_application_error(-20777, ''<< rowid_binding >>:'' '
                    || ' || $$plsql_line || nl || dbms_utility.format_error_stack);'                             || nl ||
-                   '    end rowid_bind;'                                                                        || nl ||
+                   '    end rowid_binding;'                                                                     || nl ||
                    '  exception when others then'                                                               || nl ||
                    '    raise_application_error(-20777, lc__ || $$plsql_line || nl '
                    || '|| dbms_utility.format_error_stack);'                                                    || nl ||
@@ -2421,9 +2416,16 @@ is
                    '  ------------------------------------------------------------------'                       || nl ||
                    '  ------------------------ Declare Session -------------------------'                       || nl ||
                    '  ------------------------------------------------------------------'                       || nl ||
-                   '  -- Inherited types'                                                                       || nl ||
-                   '  subtype plstring is varchar2(32767);'                                                     || nl ||
-                   '  subtype plraw    is raw(32767);'                                                          || nl ||
+                   '  gc_limit   constant pls_integer := 1e2; --FORALL collection limit: 100'                   || nl ||
+                   ''                                                                                           || nl ||
+                   '  -- pl/sql subtypes'                                                                       || nl ||
+                   '  subtype plstring    is varchar2(32767);'                                                  || nl ||
+                   '  subtype plraw       is raw(32767);'                                                       || nl ||
+                   ''                                                                                           || nl ||
+                   '  -- pl/sql types'                                                                          || nl ||
+                   '  type weak_refcursor is ref cursor;'                                                       || nl ||
+                   '  type plstring_list  is table of plstring index by pls_integer;'                           || nl ||
+                   '  type urowid_list    is table of urowid   index by pls_integer;'                           || nl ||
                    ''                                                                                           || nl ||
                    '  -- API types'                                                                             || nl;
       put_payload_pvt(lv_buffer);
