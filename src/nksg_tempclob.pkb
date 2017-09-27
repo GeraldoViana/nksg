@@ -64,7 +64,7 @@ is
       gt_payload(fv_plid).buffer := null;
     end if;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end flush_pvt;
 
   ------------------------------------------------------------------
@@ -84,7 +84,7 @@ is
       end if;
     end if;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end put_payload_pvt;
 
   ------------------------------------------------------------------
@@ -112,7 +112,7 @@ is
     end if;
     return lv_plid;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end new_payload;
 
   ------------------------------------------------------------------
@@ -130,7 +130,7 @@ is
     end if;
     return lv_result;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end payload_length;
 
   ------------------------------------------------------------------
@@ -142,14 +142,14 @@ is
     lc__  constant varchar2(100) := $$plsql_unit || '.PUT_PAYLOAD:';
   begin
     if (not gt_payload.exists(fv_plid)) then
-      raise_application_error(-20999, 'Invalid payload handler:' || $$plsql_line);
+      raise_application_error(-20888, 'Invalid payload handler:' || $$plsql_line);
     elsif (fv_data is not null) then
       pragma inline (put_payload_pvt, 'YES');
       put_payload_pvt(fv_plid => fv_plid,
                       fv_data => fv_data);
     end if;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end put_payload;
   ------------------------------------------------------------------
   procedure put_payload(fv_plid  in pls_integer,
@@ -161,7 +161,7 @@ is
     lv_buffer        plstring;
   begin
     if (not gt_payload.exists(fv_plid)) then
-      raise_application_error(-20999, 'Invalid payload handler:' || $$plsql_line);
+      raise_application_error(-20888, 'Invalid payload handler:' || $$plsql_line);
     elsif (fv_clob is not null) then
       -------------
       << lobloop >>
@@ -182,12 +182,12 @@ is
           when no_data_found then
             exit lobloop;
           when others then
-            raise_application_error(-20904, '<< lobloop >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
+            raise_application_error(-20888, '<< lobloop >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
         end;
       end loop lobloop;
     end if;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end put_payload;
 
   ------------------------------------------------------------------
@@ -203,7 +203,7 @@ is
       fv_payload := gt_payload(fv_plid).payload;
     end if;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end get_payload;
   ------------------------------------------------------------------
   procedure get_payload(fv_plid     in pls_integer,
@@ -241,7 +241,7 @@ is
       end if;
     end if;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end get_payload;
 
   ------------------------------------------------------------------
@@ -259,7 +259,7 @@ is
       gt_payload.delete(fv_plid);
     end if;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end free;
 
   ------------------------------------------------------------------
@@ -279,7 +279,7 @@ is
     end loop;
     gt_payload.delete;
   exception when others then
-    raise_application_error(-20904, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
+    raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end free_all;
 
   ------------------------------------------------------------------
@@ -291,5 +291,5 @@ begin
   $end
   null;
 exception when others then
-  raise_application_error(-20904, $$plsql_unit || '<init>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
+  raise_application_error(-20777, $$plsql_unit || '<init>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
 end nksg_tempclob;
