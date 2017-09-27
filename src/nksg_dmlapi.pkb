@@ -1295,7 +1295,7 @@ is
                    '      close lv_refcur;'                                                                     || nl ||
                    '    exception'                                                                              || nl ||
                    '      when lock_nowait or lock_timeout then'                                                || nl ||
-                   '        raise_application_error(-20888, ''rowid['' || rowidtochar(fr_id.r#wid)'             || nl ||
+                   '        raise_application_error(-20888, ''rowid['' || fr_id.r#wid'                          || nl ||
                    '                                || ''] locked by another session:'' || $$plsql_line);'      || nl ||
                    '      when others then'                                                                     || nl ||
                    '        raise;'                                                                             || nl ||
@@ -1650,7 +1650,7 @@ is
                    '    begin'                                                                                  || nl ||
                    '      i := lt_rowid.first;'                                                                 || nl ||
                    '      while (i is not null) loop'                                                           || nl ||
-                   '        ft_data(i).r#wid := rowidtochar(lt_rowid(i));'                                      || nl ||
+                   '        ft_data(i).r#wid := lt_rowid(i);'                                                   || nl ||
                    '        if (fv_rebind) then'                                                                || nl ||
                    '          pragma inline (select_row_pvt, ''YES'');'                                         || nl ||
                    '          select_row_pvt(fr_data => ft_data(i));'                                           || nl ||
@@ -1855,7 +1855,7 @@ is
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '      returning rowidtochar(rowid) bulk collect into lt_rowid;'                             || nl ||
+      lv_buffer := '      returning rowid bulk collect into lt_rowid;'                                          || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
