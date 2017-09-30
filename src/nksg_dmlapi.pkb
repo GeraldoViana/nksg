@@ -351,14 +351,16 @@ is
     end if;
     if (fr_metadata.data_type = gc_number) then
       if (fr_metadata.data_precision is null and fr_metadata.data_scale is null) then
-      lv_result := 'number';
+        lv_result := 'number';
       elsif (fr_metadata.data_precision is null and nvl(fr_metadata.data_scale,0) > 0) then
-      lv_result := 'number(38,' || to_char(fr_metadata.data_scale) || ')';
+        lv_result := 'number(38,' || to_char(fr_metadata.data_scale) || ')';
       elsif (fr_metadata.data_precision is not null and nvl(fr_metadata.data_scale,0) = 0) then
-      lv_result := 'number(' || to_char(fr_metadata.data_precision) || ')';
+        lv_result := 'number(' || to_char(fr_metadata.data_precision) || ')';
       elsif (fr_metadata.data_precision is not null and fr_metadata.data_scale is not null) then
-      lv_result := 'number(' || to_char(fr_metadata.data_precision) || ','
-                             || to_char(fr_metadata.data_scale)     || ')';
+        lv_result := 'number(' || to_char(fr_metadata.data_precision) || ','
+                               || to_char(fr_metadata.data_scale)     || ')';
+      else
+        lv_result := 'number';
       end if;
     elsif (fr_metadata.data_type = gc_char) then
       lv_result := 'char(' || to_char(fr_metadata.char_length) || lv_semantic;

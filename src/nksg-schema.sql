@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------------------------------------------------
 -- @nksg-schema.sql: Optional "NKSG: PL/SQL Simple Generator" user/owner/schema creation
 ------------------------------------------------------------------------------------------------------------------------
--- The GRANTs required are: 'create session', 'create table', 'create procedure';
+-- The ROLEs required are: 'connect', 'resource';
 ------------------------------------------------------------------------------------------------------------------------
 declare
   lv__          constant varchar2(100) := 'Anonymous PL/SQL Block';
@@ -31,13 +31,10 @@ begin
   execute immediate lv_stmt;
 
   -- grants
-  lv_stmt := 'grant create session to '   || lv_username;
+  lv_stmt := 'grant connect to '   || lv_username;
   dbms_output.put_line(lv_stmt);
   execute immediate lv_stmt;
-  lv_stmt := 'grant create table to '     || lv_username;
-  dbms_output.put_line(lv_stmt);
-  execute immediate lv_stmt;
-  lv_stmt := 'grant create procedure to ' || lv_username;
+  lv_stmt := 'grant resource to '     || lv_username;
   dbms_output.put_line(lv_stmt);
   execute immediate lv_stmt;
 exception when others then
