@@ -1,8 +1,5 @@
 # NKSG: PL/SQL Simple Generator
-
 ### Generates Table CRUD PL/SQL Packages API
-
----
 
 This hasn't by any means, the intention to be complete.
 
