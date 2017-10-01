@@ -351,7 +351,9 @@ is
     end if;
     if (fr_metadata.data_type = gc_number) then
       if (fr_metadata.data_precision is null and fr_metadata.data_scale is null) then
-        lv_result := 'number';
+        lv_result := 'number(38)';
+      elsif (fr_metadata.data_precision is null and nvl(fr_metadata.data_scale,0) = 0) then
+        lv_result := 'number(38)';
       elsif (fr_metadata.data_precision is null and nvl(fr_metadata.data_scale,0) > 0) then
         lv_result := 'number(38,' || to_char(fr_metadata.data_scale) || ')';
       elsif (fr_metadata.data_precision is not null and nvl(fr_metadata.data_scale,0) = 0) then
