@@ -294,20 +294,14 @@ declare
 ';
   lr_data    nksg_apitest_dml.RecData;
 begin
-  -- trigger will set to: -50
   lr_data.id := -51;                                                                -- 01/25 number(16)           not null enable,
-  -- sql% will set to: 184500
   lr_data.number_column := 184522.99999;                                            -- 02/25 number(14,-2)        not null enable,
   lr_data.float_column := 7f;                                                       -- 03/25 float(11)            not null enable,
   lr_data.char_column := 'XXXXX';                                                   -- 04/25 char(7 byte)         not null enable,
   lr_data.flag := 'Z';                                                              -- 05/25 varchar2(1)          not null enable,
-  -- trigger will set to: 'Zbrzczdzbrz'
   lr_data.varchar2_column := 'Abracadabra';                                         -- 11/25 varchar2(150 char),
-  -- trigger will set to: '€'
   lr_data.nvarchar2_column := '3';                                                  -- 12/25 nvarchar2(150),
-  -- trigger will set to: '2009-07-14 23:59:59'
   lr_data.date_column := to_date('2017-10-01 00:05:14', 'YYYY-MM-DD HH24:MI:SS');   -- 13/25 date,
-  -- trigger will set to: 65535 bytes
   lr_data.clob_column := '0x';                                                      -- 20/25 clob,
   dbms_output.put_line('Data before NKSG_APITEST_DML.UPDATE_ROW() call');
   dbms_output.put_line('-----------------------------------------------');
