@@ -2747,7 +2747,7 @@ is
     lc__    constant varchar2(100) := $$plsql_unit || '.DML_BODY:';
   begin
     if (fv_replace) then
-      execute immediate q'[alter session set plsql_warnings='enable:all,disable:05005,disable:06002,disable:06004,disable:06005,disable:06006,disable:07206']';
+      execute immediate q'[alter session set plsql_warnings='enable:all,disable:05005,disable:06002,disable:06004,disable:06005,disable:06006,disable:06009,disable:06010,disable:07202,disable:07204,disable:07206']';
       execute immediate q'[alter session set plsql_optimize_level=3]';
       execute immediate q'[alter session set plsql_code_type=native]';
       execute immediate q'[alter session set plscope_settings='identifiers:none']';
