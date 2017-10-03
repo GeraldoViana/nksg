@@ -6,7 +6,7 @@ This hasn't by any means, the intention to be complete.
 My goal here is to minimize the task of writing DMLs for every table on a system.
 
 I've always liked and forced a single point of DMLs events in my PL/SQL codes,  
-and every piece of it elsewhere just reference this API.
+and every piece of it elsewhere just references this API.
 
 _En plus_, when you are able to catch invalid data before hitting the SQL Engine is always a good way to go.
 
@@ -114,11 +114,11 @@ is
 
   -- API types
   type RecID is record(r#wid    urowid,
-                       id       number);
+                       id       number(38));
   type ArrID is table of RecID index by pls_integer;
 
   type RecData is record(r#wid         urowid,
-                         id            number,                -- PK 1/1
+                         id            number(38),            -- PK 1/1
                          first_name    varchar2(50 char),
                          last_name     varchar2(50 char),
                          email         varchar2(150 char));
@@ -266,12 +266,12 @@ is
 
   -- API types
   type RecID is record(r#wid    urowid,
-                       id       number);
+                       id       number(38));
   type ArrID is table of RecID index by pls_integer;
 
   type RecData is record(r#wid             urowid,
-                         id                number,          -- PK 1/1
-                         pid_customer      number,
+                         id                number(38),      -- PK 1/1
+                         pid_customer      number(38),
                          invoice_date      date,
                          invoice_amount    number(38,2));
   type ArrData is table of RecData index by pls_integer;
@@ -447,8 +447,14 @@ is
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.INSPECT_DATA_PVT:';
   begin
-    if (fr_data.id is null) then
+    if (fr_data.email is null) then
+      raise_application_error(-20888, 'fr_data.email argument cannot be null:' || $$plsql_line);
+    elsif (fr_data.first_name is null) then
+      raise_application_error(-20888, 'fr_data.first_name argument cannot be null:' || $$plsql_line);
+    elsif (fr_data.id is null) then
       raise_application_error(-20888, 'fr_data.id argument cannot be null:' || $$plsql_line);
+    elsif (fr_data.last_name is null) then
+      raise_application_error(-20888, 'fr_data.last_name argument cannot be null:' || $$plsql_line);
     end if;
     -- include defaults and sanities below this line...
   exception when others then
@@ -482,11 +488,14 @@ is
     open lv_refcur for
     select --+ choose
            a.rowid,                                                                             --000 urowid
-           a.id                                                                                 --001 number
+           a.id,                                                                                --001 number(38)
+           a.first_name,                                                                        --002 varchar2(50 char)
+           a.last_name,                                                                         --003 varchar2(50 char)
+           a.email                                                                              --004 varchar2(150 char)
       from r4v_customer    a
      where 1e1 = 1e1
        and (fr_data.r#wid is null or a.rowid = fr_data.r#wid)                                   --000 urowid
-       and a.id = fr_data.id;                                                                   --001 number
+       and a.id = fr_data.id;                                                                   --001 number(38)
     fetch lv_refcur into fr_data;
     close lv_refcur;
   exception when others then
@@ -507,11 +516,14 @@ is
     open lv_refcur for
     select --+ choose
            a.rowid,                                                                             --000 urowid
-           a.id                                                                                 --001 number
+           a.id,                                                                                --001 number(38)
+           a.first_name,                                                                        --002 varchar2(50 char)
+           a.last_name,                                                                         --003 varchar2(50 char)
+           a.email                                                                              --004 varchar2(150 char)
       from r4v_customer    a
      where 1e1 = 1e1
        and (fr_data.r#wid is null or a.rowid = fr_data.r#wid)                                   --000 urowid
-       and a.id = fr_data.id                                                                    --001 number
+       and a.id = fr_data.id                                                                    --001 number(38)
        for update wait 4;
     fetch lv_refcur into fr_data;
     close lv_refcur;
@@ -539,7 +551,7 @@ is
       from r4v_customer    a
      where 1e1 = 1e1
        and (fr_id.r#wid is null or a.rowid = fr_id.r#wid)                                       --000 urowid
-       and a.id = fr_id.id;                                                                     --001 number
+       and a.id = fr_id.id;                                                                     --001 number(38)
     fetch lv_refcur into lv_null;
     lv_found := lv_refcur%found;
     close lv_refcur;
@@ -562,7 +574,7 @@ is
       from r4v_customer    a
      where 1e1 = 1e1
        and a.rowid = fr_id.r#wid                                                                --000 urowid
-       and a.id = fr_id.id;                                                                     --001 number
+       and a.id = fr_id.id;                                                                     --001 number(38)
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end delete_row_pvt;
@@ -577,15 +589,24 @@ is
     update --+ rowid(a)
            r4v_customer    a
        set -- set-list
+           a.first_name = fr_data.first_name,                                                   --002 varchar2(50 char)
+           a.last_name = fr_data.last_name,                                                     --003 varchar2(50 char)
+           a.email = fr_data.email                                                              --004 varchar2(150 char)
      where 1e1 = 1e1
        and a.rowid = fr_data.r#wid                                                              --000 urowid
-       and a.id = fr_data.id                                                                    --001 number
+       and a.id = fr_data.id                                                                    --001 number(38)
     returning
            rowid,                                                                               --000 urowid
-           id                                                                                   --001 number
+           id,                                                                                  --001 number(38)
+           first_name,                                                                          --002 varchar2(50 char)
+           last_name,                                                                           --003 varchar2(50 char)
+           email                                                                                --004 varchar2(150 char)
       into
            fr_data.r#wid,                                                                       --000 urowid
-           fr_data.id;                                                                          --001 number
+           fr_data.id,                                                                          --001 number(38)
+           fr_data.first_name,                                                                  --002 varchar2(50 char)
+           fr_data.last_name,                                                                   --003 varchar2(50 char)
+           fr_data.email;                                                                       --004 varchar2(150 char)
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end update_row_pvt;
@@ -605,7 +626,7 @@ is
         from r4v_customer    a
        where 1e1 = 1e1
          and a.rowid = fr_id.r#wid                                                              --000 urowid
-         and a.id = fr_id.id                                                                    --001 number
+         and a.id = fr_id.id                                                                    --001 number(38)
       for update wait 4;
       close lv_refcur;
     exception
@@ -720,16 +741,28 @@ is
     inspect_data_pvt(fr_data => fr_data);
     insert into r4v_customer
       ( -- column-list
-        id)                                                                                     --001 number
+        id,                                                                                     --001 number(38)
+        first_name,                                                                             --002 varchar2(50 char)
+        last_name,                                                                              --003 varchar2(50 char)
+        email)                                                                                  --004 varchar2(150 char)
     values
       ( -- value-list
-        fr_data.id)                                                                             --001 number
+        fr_data.id,                                                                             --001 number(38)
+        fr_data.first_name,                                                                     --002 varchar2(50 char)
+        fr_data.last_name,                                                                      --003 varchar2(50 char)
+        fr_data.email)                                                                          --004 varchar2(150 char)
     returning
         rowid,                                                                                  --000 urowid
-        id                                                                                      --001 number
+        id,                                                                                     --001 number(38)
+        first_name,                                                                             --002 varchar2(50 char)
+        last_name,                                                                              --003 varchar2(50 char)
+        email                                                                                   --004 varchar2(150 char)
     into
         fr_data.r#wid,                                                                          --000 urowid
-        fr_data.id;                                                                             --001 number
+        fr_data.id,                                                                             --001 number(38)
+        fr_data.first_name,                                                                     --002 varchar2(50 char)
+        fr_data.last_name,                                                                      --003 varchar2(50 char)
+        fr_data.email;                                                                          --004 varchar2(150 char)
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end insert_row;
@@ -741,7 +774,7 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.INSERT_ALL:';
-    lt_urowid        urowid_list;
+    lt_id            ArrID;
     i                pls_integer;
   begin
     ------------
@@ -768,11 +801,20 @@ is
       forall i in indices of ft_data
       insert into r4v_customer
       ( -- column-list
-        id)                                                                                     --001 number
+        id,                                                                                     --001 number(38)
+        first_name,                                                                             --002 varchar2(50 char)
+        last_name,                                                                              --003 varchar2(50 char)
+        email)                                                                                  --004 varchar2(150 char)
       values
       ( -- value-list
-        ft_data(i).id)                                                                          --001 number
-      returning rowid bulk collect into lt_urowid; 
+        ft_data(i).id,                                                                          --001 number(38)
+        ft_data(i).first_name,                                                                  --002 varchar2(50 char)
+        ft_data(i).last_name,                                                                   --003 varchar2(50 char)
+        ft_data(i).email)                                                                       --004 varchar2(150 char)
+      returning
+        rowid,                                                                                  --000 urowid
+        id                                                                                      --001 number(38)
+      bulk collect into lt_id;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -780,14 +822,15 @@ is
     << rowid_binding >>
     -------------------
     begin
-      i := lt_urowid.first;
+      i := lt_id.first;
       while (i is not null) loop
-        ft_data(i).r#wid := lt_urowid(i);
+        ft_data(i).r#wid := lt_id(i).r#wid;                                                     --000 urowid
+        ft_data(i).id := lt_id(i).id;                                                           --001 number(38)
         if (fv_rebind) then
           pragma inline (select_row_pvt, 'YES');
           select_row_pvt(fr_data => ft_data(i));
         end if;
-        i := lt_urowid.next(i);
+        i := lt_id.next(i);
       end loop;
     exception when others then
       raise_application_error(-20777, '<< rowid_binding >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -906,9 +949,12 @@ is
       update --+ rowid(a)
              r4v_customer    a
          set -- set-list
+             a.first_name = ft_data(i).first_name,                                              --002 varchar2(50 char)
+             a.last_name = ft_data(i).last_name,                                                --003 varchar2(50 char)
+             a.email = ft_data(i).email                                                         --004 varchar2(150 char)
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id                                                               --001 number
+         and a.id = ft_data(i).id                                                               --001 number(38)
       returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -993,7 +1039,7 @@ is
         from r4v_customer    a
        where 1e1 = 1e1
          and a.rowid = ft_id(i).r#wid                                                           --000 urowid
-         and a.id = ft_id(i).id;                                                                --001 number
+         and a.id = ft_id(i).id;                                                                --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1032,7 +1078,7 @@ is
         from r4v_customer    a
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id;                                                              --001 number
+         and a.id = ft_data(i).id;                                                              --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1060,7 +1106,10 @@ is
     lc__   constant varchar2(100) := $$plsql_unit || '.IS_NULL:';
   begin
     return true
-           and fr_data.id    is null;
+           and fr_data.id         is null
+           and fr_data.first_name is null
+           and fr_data.last_name  is null
+           and fr_data.email      is null;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end is_null;
@@ -1091,9 +1140,21 @@ is
   begin
     return true
            --001 id: integer
-           and ((    fr_old.id    is null and     fr_new.id    is null) or 
-                (not fr_old.id    is null and not fr_new.id    is null
-                 and fr_old.id             =      fr_new.id   ))
+           and ((    fr_old.id         is null and     fr_new.id         is null) or 
+                (not fr_old.id         is null and not fr_new.id         is null
+                 and fr_old.id                  =      fr_new.id        ))
+           --002 first_name: varchar2
+           and ((    fr_old.first_name is null and     fr_new.first_name is null) or 
+                (not fr_old.first_name is null and not fr_new.first_name is null
+                 and fr_old.first_name          =      fr_new.first_name))
+           --003 last_name: varchar2
+           and ((    fr_old.last_name  is null and     fr_new.last_name  is null) or 
+                (not fr_old.last_name  is null and not fr_new.last_name  is null
+                 and fr_old.last_name           =      fr_new.last_name ))
+           --004 email: varchar2
+           and ((    fr_old.email      is null and     fr_new.email      is null) or 
+                (not fr_old.email      is null and not fr_new.email      is null
+                 and fr_old.email               =      fr_new.email     ))
            and true;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -1256,14 +1317,14 @@ is
     open lv_refcur for
     select --+ choose
            a.rowid,                                                                             --000 urowid
-           a.id,                                                                                --001 number
-           a.pid_customer,                                                                      --002 number
+           a.id,                                                                                --001 number(38)
+           a.pid_customer,                                                                      --002 number(38)
            a.invoice_date,                                                                      --003 date
            a.invoice_amount                                                                     --004 number(38,2)
       from r4v_invoice    a
      where 1e1 = 1e1
        and (fr_data.r#wid is null or a.rowid = fr_data.r#wid)                                   --000 urowid
-       and a.id = fr_data.id;                                                                   --001 number
+       and a.id = fr_data.id;                                                                   --001 number(38)
     fetch lv_refcur into fr_data;
     close lv_refcur;
   exception when others then
@@ -1284,14 +1345,14 @@ is
     open lv_refcur for
     select --+ choose
            a.rowid,                                                                             --000 urowid
-           a.id,                                                                                --001 number
-           a.pid_customer,                                                                      --002 number
+           a.id,                                                                                --001 number(38)
+           a.pid_customer,                                                                      --002 number(38)
            a.invoice_date,                                                                      --003 date
            a.invoice_amount                                                                     --004 number(38,2)
       from r4v_invoice    a
      where 1e1 = 1e1
        and (fr_data.r#wid is null or a.rowid = fr_data.r#wid)                                   --000 urowid
-       and a.id = fr_data.id                                                                    --001 number
+       and a.id = fr_data.id                                                                    --001 number(38)
        for update wait 4;
     fetch lv_refcur into fr_data;
     close lv_refcur;
@@ -1319,7 +1380,7 @@ is
       from r4v_invoice    a
      where 1e1 = 1e1
        and (fr_id.r#wid is null or a.rowid = fr_id.r#wid)                                       --000 urowid
-       and a.id = fr_id.id;                                                                     --001 number
+       and a.id = fr_id.id;                                                                     --001 number(38)
     fetch lv_refcur into lv_null;
     lv_found := lv_refcur%found;
     close lv_refcur;
@@ -1342,7 +1403,7 @@ is
       from r4v_invoice    a
      where 1e1 = 1e1
        and a.rowid = fr_id.r#wid                                                                --000 urowid
-       and a.id = fr_id.id;                                                                     --001 number
+       and a.id = fr_id.id;                                                                     --001 number(38)
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end delete_row_pvt;
@@ -1357,22 +1418,22 @@ is
     update --+ rowid(a)
            r4v_invoice    a
        set -- set-list
-           a.pid_customer = fr_data.pid_customer,                                               --002 number
+           a.pid_customer = fr_data.pid_customer,                                               --002 number(38)
            a.invoice_date = fr_data.invoice_date,                                               --003 date
            a.invoice_amount = fr_data.invoice_amount                                            --004 number(38,2)
      where 1e1 = 1e1
        and a.rowid = fr_data.r#wid                                                              --000 urowid
-       and a.id = fr_data.id                                                                    --001 number
+       and a.id = fr_data.id                                                                    --001 number(38)
     returning
            rowid,                                                                               --000 urowid
-           id,                                                                                  --001 number
-           pid_customer,                                                                        --002 number
+           id,                                                                                  --001 number(38)
+           pid_customer,                                                                        --002 number(38)
            invoice_date,                                                                        --003 date
            invoice_amount                                                                       --004 number(38,2)
       into
            fr_data.r#wid,                                                                       --000 urowid
-           fr_data.id,                                                                          --001 number
-           fr_data.pid_customer,                                                                --002 number
+           fr_data.id,                                                                          --001 number(38)
+           fr_data.pid_customer,                                                                --002 number(38)
            fr_data.invoice_date,                                                                --003 date
            fr_data.invoice_amount;                                                              --004 number(38,2)
   exception when others then
@@ -1394,7 +1455,7 @@ is
         from r4v_invoice    a
        where 1e1 = 1e1
          and a.rowid = fr_id.r#wid                                                              --000 urowid
-         and a.id = fr_id.id                                                                    --001 number
+         and a.id = fr_id.id                                                                    --001 number(38)
       for update wait 4;
       close lv_refcur;
     exception
@@ -1509,26 +1570,26 @@ is
     inspect_data_pvt(fr_data => fr_data);
     insert into r4v_invoice
       ( -- column-list
-        id,                                                                                     --001 number
-        pid_customer,                                                                           --002 number
+        id,                                                                                     --001 number(38)
+        pid_customer,                                                                           --002 number(38)
         invoice_date,                                                                           --003 date
         invoice_amount)                                                                         --004 number(38,2)
     values
       ( -- value-list
-        fr_data.id,                                                                             --001 number
-        fr_data.pid_customer,                                                                   --002 number
+        fr_data.id,                                                                             --001 number(38)
+        fr_data.pid_customer,                                                                   --002 number(38)
         fr_data.invoice_date,                                                                   --003 date
         fr_data.invoice_amount)                                                                 --004 number(38,2)
     returning
         rowid,                                                                                  --000 urowid
-        id,                                                                                     --001 number
-        pid_customer,                                                                           --002 number
+        id,                                                                                     --001 number(38)
+        pid_customer,                                                                           --002 number(38)
         invoice_date,                                                                           --003 date
         invoice_amount                                                                          --004 number(38,2)
     into
         fr_data.r#wid,                                                                          --000 urowid
-        fr_data.id,                                                                             --001 number
-        fr_data.pid_customer,                                                                   --002 number
+        fr_data.id,                                                                             --001 number(38)
+        fr_data.pid_customer,                                                                   --002 number(38)
         fr_data.invoice_date,                                                                   --003 date
         fr_data.invoice_amount;                                                                 --004 number(38,2)
   exception when others then
@@ -1542,7 +1603,7 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.INSERT_ALL:';
-    lt_urowid        urowid_list;
+    lt_id            ArrID;
     i                pls_integer;
   begin
     ------------
@@ -1569,17 +1630,20 @@ is
       forall i in indices of ft_data
       insert into r4v_invoice
       ( -- column-list
-        id,                                                                                     --001 number
-        pid_customer,                                                                           --002 number
+        id,                                                                                     --001 number(38)
+        pid_customer,                                                                           --002 number(38)
         invoice_date,                                                                           --003 date
         invoice_amount)                                                                         --004 number(38,2)
       values
       ( -- value-list
-        ft_data(i).id,                                                                          --001 number
-        ft_data(i).pid_customer,                                                                --002 number
+        ft_data(i).id,                                                                          --001 number(38)
+        ft_data(i).pid_customer,                                                                --002 number(38)
         ft_data(i).invoice_date,                                                                --003 date
         ft_data(i).invoice_amount)                                                              --004 number(38,2)
-      returning rowid bulk collect into lt_urowid; 
+      returning
+        rowid,                                                                                  --000 urowid
+        id                                                                                      --001 number(38)
+      bulk collect into lt_id;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1587,14 +1651,15 @@ is
     << rowid_binding >>
     -------------------
     begin
-      i := lt_urowid.first;
+      i := lt_id.first;
       while (i is not null) loop
-        ft_data(i).r#wid := lt_urowid(i);
+        ft_data(i).r#wid := lt_id(i).r#wid;                                                     --000 urowid
+        ft_data(i).id := lt_id(i).id;                                                           --001 number(38)
         if (fv_rebind) then
           pragma inline (select_row_pvt, 'YES');
           select_row_pvt(fr_data => ft_data(i));
         end if;
-        i := lt_urowid.next(i);
+        i := lt_id.next(i);
       end loop;
     exception when others then
       raise_application_error(-20777, '<< rowid_binding >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -1713,12 +1778,12 @@ is
       update --+ rowid(a)
              r4v_invoice    a
          set -- set-list
-             a.pid_customer = ft_data(i).pid_customer,                                          --002 number
+             a.pid_customer = ft_data(i).pid_customer,                                          --002 number(38)
              a.invoice_date = ft_data(i).invoice_date,                                          --003 date
              a.invoice_amount = ft_data(i).invoice_amount                                       --004 number(38,2)
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id                                                               --001 number
+         and a.id = ft_data(i).id                                                               --001 number(38)
       returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -1803,7 +1868,7 @@ is
         from r4v_invoice    a
        where 1e1 = 1e1
          and a.rowid = ft_id(i).r#wid                                                           --000 urowid
-         and a.id = ft_id(i).id;                                                                --001 number
+         and a.id = ft_id(i).id;                                                                --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1842,7 +1907,7 @@ is
         from r4v_invoice    a
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id;                                                              --001 number
+         and a.id = ft_data(i).id;                                                              --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
