@@ -1567,7 +1567,7 @@ is
                    '                       fv_rebind  in boolean default false)'                                || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.INSERT_ALL:'';'                    || nl ||
-                   '    lt_urowid        urowid_list;'                                                          || nl ||
+                   '    lt_id            ArrID;'                                                                || nl ||
                    '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
@@ -1638,7 +1638,29 @@ is
           i := fr_bundle.full_element.next(i);
         end loop;
       end if;
-      lv_buffer := '      returning rowid bulk collect into lt_urowid; '                                        || nl ||
+      lv_buffer := '      returning'                                                                            || nl;
+      put_payload_pvt(lv_buffer);
+      i := fr_bundle.pk_element.first;
+      while (i is not null) loop
+        lv_colid := lower(fr_bundle.pk_element(i).column_id);
+        lv_column := lower(fr_bundle.pk_element(i).column_name);
+        lv_rectype := fr_bundle.pk_element(i).record_type;
+        lv_ipad := 86 - lengthb(lv_column);
+        if (i = fr_bundle.pk_element.first) then
+          lv_buffer := '        rowid,' || ppvt(82) || '--000 urowid'                                           || nl;
+        else
+          lv_buffer := '        ' || lv_column || s# || ppvt(lv_ipad)
+                       || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype                          || nl;
+        end if;
+        if (i != fr_bundle.pk_element.last) then
+          lv_buffer := replace(lv_buffer, s#, '.');
+        else
+          lv_buffer := replace(lv_buffer, s#, ' ');
+        end if;
+        put_payload_pvt(lv_buffer);
+        i := fr_bundle.pk_element.next(i);
+      end loop;
+      lv_buffer := '      bulk collect into lt_id;'                                                             || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
@@ -1647,14 +1669,29 @@ is
                    '    << rowid_binding >>'                                                                    || nl ||
                    '    -------------------'                                                                    || nl ||
                    '    begin'                                                                                  || nl ||
-                   '      i := lt_urowid.first;'                                                                || nl ||
-                   '      while (i is not null) loop'                                                           || nl ||
-                   '        ft_data(i).r#wid := lt_urowid(i);'                                                  || nl ||
-                   '        if (fv_rebind) then'                                                                || nl ||
+                   '      i := lt_id.first;'                                                                    || nl ||
+                   '      while (i is not null) loop'                                                           || nl;
+      put_payload_pvt(lv_buffer);
+      i := fr_bundle.pk_element.first;
+      while (i is not null) loop
+        lv_colid := lower(fr_bundle.pk_element(i).column_id);
+        lv_column := lower(fr_bundle.pk_element(i).column_name);
+        lv_rectype := fr_bundle.pk_element(i).record_type;
+        lv_ipad := 60 - lengthb(lv_column);
+        if (i = fr_bundle.pk_element.first) then
+          lv_buffer := '        ft_data(i).r#wid := lt_id(i).r#wid;' || ppvt(53) || '--000 urowid'              || nl;
+        else
+          lv_buffer := '        ft_data(i).' || lv_column || ' := lt_id(i).' || lv_column || ';'
+                       || ppvt(lv_ipad) || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype         || nl;
+        end if;
+        put_payload_pvt(lv_buffer);
+        i := fr_bundle.pk_element.next(i);
+      end loop;
+      lv_buffer := '        if (fv_rebind) then'                                                                || nl ||
                    '          pragma inline (select_row_pvt, ''YES'');'                                         || nl ||
                    '          select_row_pvt(fr_data => ft_data(i));'                                           || nl ||
                    '        end if;'                                                                            || nl ||
-                   '        i := lt_urowid.next(i);'                                                            || nl ||
+                   '        i := lt_id.next(i);'                                                                || nl ||
                    '      end loop;'                                                                            || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< rowid_binding >>:'' '

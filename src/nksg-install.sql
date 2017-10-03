@@ -48,7 +48,7 @@ prompt | NKSG: Start of script                                                  
 prompt +-------------------------------------------------------------------------+
 
 set echo on
-alter session set plsql_warnings='enable:all,disable:05005,disable:06002,disable:06004,disable:06005,disable:06006,disable:07206';
+alter session set plsql_warnings='enable:all,disable:05005,disable:06002,disable:06004,disable:06005,disable:06006,disable:06009,disable:06010,disable:07202,disable:07204,disable:07206';
 alter session set plsql_optimize_level=3;
 alter session set plsql_code_type=native;
 alter session set plscope_settings='identifiers:none';
