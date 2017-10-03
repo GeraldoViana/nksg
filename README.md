@@ -818,9 +818,9 @@ is
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
-    -------------------
-    << rowid_binding >>
-    -------------------
+    ------------
+    << rebind >>
+    ------------
     begin
       i := lt_id.first;
       while (i is not null) loop
@@ -833,8 +833,8 @@ is
         i := lt_id.next(i);
       end loop;
     exception when others then
-      raise_application_error(-20777, '<< rowid_binding >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
-    end rowid_binding;
+      raise_application_error(-20777, '<< rebind >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
+    end rebind;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end insert_all;
@@ -919,7 +919,6 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.UPDATE_ALL:';
-    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -954,27 +953,25 @@ is
              a.email = ft_data(i).email                                                         --004 varchar2(150 char)
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id                                                               --001 number(38)
-      returning rowid bulk collect into lt_urowid;
+         and a.id = ft_data(i).id;                                                              --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
-    -------------------
-    << rowid_binding >>
-    -------------------
+    ------------
+    << rebind >>
+    ------------
     begin
-      i := lt_urowid.first;
-      while (i is not null) loop
-        ft_data(i).r#wid := lt_urowid(i);
-        if (fv_rebind) then
+      if (fv_rebind) then
+        i := ft_data.first;
+        while (i is not null) loop
           pragma inline (select_row_pvt, 'YES');
           select_row_pvt(fr_data => ft_data(i));
-        end if;
-        i := lt_urowid.next(i);
-      end loop;
+          i := ft_data.next(i);
+        end loop;
+      end if;
     exception when others then
-      raise_application_error(-20777, '<< rowid_binding >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
-    end rowid_binding;
+      raise_application_error(-20777, '<< rebind >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
+    end rebind;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end update_all;
@@ -1647,9 +1644,9 @@ is
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
-    -------------------
-    << rowid_binding >>
-    -------------------
+    ------------
+    << rebind >>
+    ------------
     begin
       i := lt_id.first;
       while (i is not null) loop
@@ -1662,8 +1659,8 @@ is
         i := lt_id.next(i);
       end loop;
     exception when others then
-      raise_application_error(-20777, '<< rowid_binding >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
-    end rowid_binding;
+      raise_application_error(-20777, '<< rebind >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
+    end rebind;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end insert_all;
@@ -1748,7 +1745,6 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.UPDATE_ALL:';
-    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -1783,27 +1779,25 @@ is
              a.invoice_amount = ft_data(i).invoice_amount                                       --004 number(38,2)
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id                                                               --001 number(38)
-      returning rowid bulk collect into lt_urowid;
+         and a.id = ft_data(i).id;                                                              --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
-    -------------------
-    << rowid_binding >>
-    -------------------
+    ------------
+    << rebind >>
+    ------------
     begin
-      i := lt_urowid.first;
-      while (i is not null) loop
-        ft_data(i).r#wid := lt_urowid(i);
-        if (fv_rebind) then
+      if (fv_rebind) then
+        i := ft_data.first;
+        while (i is not null) loop
           pragma inline (select_row_pvt, 'YES');
           select_row_pvt(fr_data => ft_data(i));
-        end if;
-        i := lt_urowid.next(i);
-      end loop;
+          i := ft_data.next(i);
+        end loop;
+      end if;
     exception when others then
-      raise_application_error(-20777, '<< rowid_binding >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
-    end rowid_binding;
+      raise_application_error(-20777, '<< rebind >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
+    end rebind;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end update_all;
