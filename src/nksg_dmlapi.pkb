@@ -1653,7 +1653,7 @@ is
                        || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype                          || nl;
         end if;
         if (i != fr_bundle.pk_element.last) then
-          lv_buffer := replace(lv_buffer, s#, '.');
+          lv_buffer := replace(lv_buffer, s#, ',');
         else
           lv_buffer := replace(lv_buffer, s#, ' ');
         end if;
