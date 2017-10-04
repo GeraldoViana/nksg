@@ -43,7 +43,7 @@ alter table r4v_invoice add constraint r4v_invoice_fk1 foreign key (pid_customer
 ```
 
 :point_up: _Notice the unique index name and constraint name for primary key has the same name as table,  
-but it's ok as they reside in different namespace._
+but it's ok as they resides in the different namespaces._
 
 Running the procedure overload from NKSG_DMLAPI:
 
