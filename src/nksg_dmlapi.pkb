@@ -143,7 +143,7 @@ is
           select --+ choose
                  cast('0'      as number)           "COLUMN_ID",       -- number
                  cast('R#WID'  as varchar2(30))     "COLUMN_NAME",     -- varchar2(30)
-                 cast('UROWID' as varchar2(256))    "DATA_TYPE",       -- varchar2(255)
+                 cast('UROWID' as varchar2(255))    "DATA_TYPE",       -- varchar2(255)
                  cast(null     as varchar2(65))     "CHAR_USED",       -- varchar2(65)
                  cast(null     as number)           "DATA_LENGTH",     -- number
                  cast(null     as number)           "CHAR_LENGTH",     -- number
@@ -212,8 +212,8 @@ is
   gc_checkcon_stmt    constant plstring := '/*~ ' || $$plsql_unit || ':' || $$plsql_line || ' */' ||
   q'[
   select --+ choose
-         aa.column_name,
-         a.search_condition
+         aa.column_name                             "COLUMN_NAME",
+         a.search_condition                         "SEARCH_CONDITION"
     from
            user_cons_columns          aa,
          user_constraints           a
@@ -268,7 +268,7 @@ is
   end returnable_type_pvt;
 
   ------------------------------------------------------------------
-  -- COMPARABLE_TYPE_PVT: Assert types comparability
+  -- COMPARABLE_TYPE_PVT: Assert types 'comparability'
   ------------------------------------------------------------------
   function comparable_type_pvt(fr_metadata  in RecMetaData)
     return boolean
@@ -413,8 +413,11 @@ is
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.BULK_TABKEY_PVT:';
   begin
-    execute immediate gc_tabkey_stmt bulk collect into ft_indexlist
-      using gc_owner, fv_table;
+    execute immediate gc_tabkey_stmt
+       bulk collect
+       into ft_indexlist
+      using gc_owner,
+            fv_table;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end bulk_tabkey_pvt;
@@ -427,7 +430,9 @@ is
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.BULK_TABCOL_PVT:';
   begin
-    execute immediate gc_tabcol_stmt bulk collect into ft_metadata
+    execute immediate gc_tabcol_stmt
+       bulk collect
+       into ft_metadata
       using fv_table;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -441,8 +446,11 @@ is
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.BULK_CHECKCON_PVT:';
   begin
-    execute immediate gc_checkcon_stmt bulk collect into ft_check
-      using gc_owner, fv_table;
+    execute immediate gc_checkcon_stmt
+       bulk collect
+       into ft_check
+      using gc_owner,
+            fv_table;
   exception when others then
     raise_application_error(-20777, lc__ || $$plsql_line || nl || dbms_utility.format_error_stack);
   end bulk_checkcon_pvt;
@@ -485,7 +493,7 @@ is
       end if;
     end loop;
     i := lt_check.first;
-    while (i is not null) loop
+    while (i is not null) loop                                       -- this needs improvements
       lv_consexpr := replace(upper(lt_check(i).check_stmt), '"');
       lv_consexpr := regexp_replace(lv_consexpr, '^(\s)+|(\s)+$|(\s){2,}', '\3');
       lv_consexpr := replace(lv_consexpr, upper(lt_check(i).column_name),
