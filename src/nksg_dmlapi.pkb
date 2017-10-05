@@ -1073,7 +1073,7 @@ is
                    '    lv_found        boolean := false;'                                                      || nl ||
                    '  begin'                                                                                    || nl ||
                    '    open lv_refcur for'                                                                     || nl ||
-                   '    select --+ choose'                                                                    || nl ||
+                   '    select --+ choose'                                                                      || nl ||
                    '           null'                                                                            || nl ||
                    '      from ' || lc_table_l || '    a'                                                       || nl ||
                    '     where 1e1 = 1e1'                                                                       || nl ||
