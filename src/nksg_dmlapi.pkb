@@ -1985,6 +1985,7 @@ is
                    '  procedure delete_all(ft_id  in ArrID)'                                                    || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.DELETE_ALL:'';'                    || nl ||
+                   '    lt_rowid         urowid_list;'                                                          || nl ||
                    '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
@@ -2022,20 +2023,16 @@ is
         lv_rectype := fr_bundle.pk_element(i).record_type;
         lv_ipad := 67 - (2 * lengthb(lv_column));
         if (i = fr_bundle.pk_element.first) then
-          lv_buffer := '         and a.rowid = ft_id(i).r#wid' || ppvt(59) || '--000 urowid'                    || nl;
+          lv_buffer := '         and a.rowid = ft_id(i).r#wid' || ppvt(58) || '--000 urowid'                    || nl;
         else
-          lv_buffer := '         and a.' || lv_column || ' = ft_id(i).' || lv_column || s# || ppvt(lv_ipad)
+          lv_buffer := '         and a.' || lv_column || ' = ft_id(i).' || lv_column || ppvt(lv_ipad)
                        || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype                          || nl;
-        end if;
-        if (i != fr_bundle.pk_element.last) then
-          lv_buffer := replace(lv_buffer, s#, ' ');
-        else
-          lv_buffer := replace(lv_buffer, s#, ';');
         end if;
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '    exception when others then'                                                             || nl ||
+      lv_buffer := '      returning rowid bulk collect into lt_rowid;'                                          || nl ||
+                   '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
                    '    end forall_call;'                                                                       || nl ||
@@ -2047,6 +2044,7 @@ is
                    '  procedure delete_all(ft_data  in ArrData)'                                                || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.DELETE_ALL:'';'                    || nl ||
+                   '    lt_rowid         urowid_list;'                                                          || nl ||
                    '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
@@ -2084,20 +2082,16 @@ is
         lv_rectype := fr_bundle.pk_element(i).record_type;
         lv_ipad := 65 - (2 * lengthb(lv_column));
         if (i = fr_bundle.pk_element.first) then
-          lv_buffer := '         and a.rowid = ft_data(i).r#wid' || ppvt(57) || '--000 urowid'                  || nl;
+          lv_buffer := '         and a.rowid = ft_data(i).r#wid' || ppvt(56) || '--000 urowid'                  || nl;
         else
-          lv_buffer := '         and a.' || lv_column || ' = ft_data(i).' || lv_column || s# || ppvt(lv_ipad)
+          lv_buffer := '         and a.' || lv_column || ' = ft_data(i).' || lv_column || ppvt(lv_ipad)
                        || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype                          || nl;
-        end if;
-        if (i != fr_bundle.pk_element.last) then
-          lv_buffer := replace(lv_buffer, s#, ' ');
-        else
-          lv_buffer := replace(lv_buffer, s#, ';');
         end if;
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '    exception when others then'                                                             || nl ||
+      lv_buffer := '      returning rowid bulk collect into lt_rowid;'                                          || nl ||
+                   '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
                    '    end forall_call;'                                                                       || nl ||
