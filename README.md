@@ -546,7 +546,7 @@ is
     lv_found        boolean := false;
   begin
     open lv_refcur for
-    select --+ rowid(a)
+    select --+ choose
            null
       from r4v_customer    a
      where 1e1 = 1e1
@@ -1008,6 +1008,7 @@ is
   procedure delete_all(ft_id  in ArrID)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.DELETE_ALL:';
+    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -1035,8 +1036,9 @@ is
       delete --+ rowid(a)
         from r4v_customer    a
        where 1e1 = 1e1
-         and a.rowid = ft_id(i).r#wid                                                           --000 urowid
-         and a.id = ft_id(i).id;                                                                --001 number(38)
+         and a.rowid = ft_id(i).r#wid                                                          --000 urowid
+         and a.id = ft_id(i).id                                                                --001 number(38)
+      returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1047,6 +1049,7 @@ is
   procedure delete_all(ft_data  in ArrData)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.DELETE_ALL:';
+    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -1074,8 +1077,9 @@ is
       delete --+ rowid(a)
         from r4v_customer    a
        where 1e1 = 1e1
-         and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id;                                                              --001 number(38)
+         and a.rowid = ft_data(i).r#wid                                                        --000 urowid
+         and a.id = ft_data(i).id                                                              --001 number(38)
+      returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1372,7 +1376,7 @@ is
     lv_found        boolean := false;
   begin
     open lv_refcur for
-    select --+ rowid(a)
+    select --+ choose
            null
       from r4v_invoice    a
      where 1e1 = 1e1
@@ -1834,6 +1838,7 @@ is
   procedure delete_all(ft_id  in ArrID)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.DELETE_ALL:';
+    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -1861,8 +1866,9 @@ is
       delete --+ rowid(a)
         from r4v_invoice    a
        where 1e1 = 1e1
-         and a.rowid = ft_id(i).r#wid                                                           --000 urowid
-         and a.id = ft_id(i).id;                                                                --001 number(38)
+         and a.rowid = ft_id(i).r#wid                                                          --000 urowid
+         and a.id = ft_id(i).id                                                                --001 number(38)
+      returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1873,6 +1879,7 @@ is
   procedure delete_all(ft_data  in ArrData)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.DELETE_ALL:';
+    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -1900,8 +1907,9 @@ is
       delete --+ rowid(a)
         from r4v_invoice    a
        where 1e1 = 1e1
-         and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id;                                                              --001 number(38)
+         and a.rowid = ft_data(i).r#wid                                                        --000 urowid
+         and a.id = ft_data(i).id                                                              --001 number(38)
+      returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
