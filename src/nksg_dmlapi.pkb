@@ -1985,7 +1985,7 @@ is
                    '  procedure delete_all(ft_id  in ArrID)'                                                    || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.DELETE_ALL:'';'                    || nl ||
-                   '    lt_rowid         urowid_list;'                                                          || nl ||
+                   '    lt_urowid        urowid_list;'                                                          || nl ||
                    '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
@@ -2031,7 +2031,7 @@ is
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '      returning rowid bulk collect into lt_rowid;'                                          || nl ||
+      lv_buffer := '      returning rowid bulk collect into lt_urowid;'                                         || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
@@ -2044,7 +2044,7 @@ is
                    '  procedure delete_all(ft_data  in ArrData)'                                                || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.DELETE_ALL:'';'                    || nl ||
-                   '    lt_rowid         urowid_list;'                                                          || nl ||
+                   '    lt_urowid        urowid_list;'                                                          || nl ||
                    '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
@@ -2090,7 +2090,7 @@ is
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '      returning rowid bulk collect into lt_rowid;'                                          || nl ||
+      lv_buffer := '      returning rowid bulk collect into lt_urowid;'                                         || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
