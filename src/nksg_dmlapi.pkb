@@ -803,6 +803,34 @@ is
                    '  nl       constant varchar2(3) := '''                                                      || nl ||
                    ''';'                                                                                        || nl ||
                    ''                                                                                           || nl ||
+                   '  -- API implementation subtypes'                                                           || nl ||
+                   '  subtype plstring    is varchar2(32767);'                                                  || nl ||
+                   '  subtype plraw       is raw(32767);'                                                       || nl ||
+                   ''                                                                                           || nl ||
+                   '  -- API implementation types'                                                              || nl ||
+                   '  type weak_refcursor is ref cursor;'                                                       || nl ||
+                   '  type plstring_list  is table of plstring index by pls_integer;'                           || nl ||
+                   '  type urowid_list    is table of urowid   index by pls_integer;'                           || nl ||
+                   ''                                                                                           || nl ||
+                   '  -- Arrays used in FORALL returning statements'                                            || nl;
+      put_payload_pvt(lv_buffer);
+      i := fr_bundle.pk_element.first;
+      if (i is not null) then
+        lv_largest_rt := largest_rectype_pvt(fr_bundle.pk_element);
+        i := fr_bundle.pk_element.next(i);    -- skip "R#WID"
+        while (i is not null) loop
+          lv_colid := lower(fr_bundle.pk_element(i).column_id);
+          lv_column := lower(fr_bundle.pk_element(i).column_name);
+          lv_rectype := fr_bundle.pk_element(i).record_type;
+          lv_ipad := lv_largest_rt - lengthb(lv_rectype);
+          lv_buffer := '  type pk' || trim(to_char(i-1, '000')) || '_list is table of '
+                       || lv_rectype || ppvt(lv_ipad) || ' index by pls_integer;  --'
+                       || trim(to_char(lv_colid, '000')) || ' ' || lv_column                                    || nl;
+          put_payload_pvt(lv_buffer);
+          i := fr_bundle.pk_element.next(i);
+        end loop;
+      end if;
+      lv_buffer := ''                                                                                           || nl ||
                    '  -- Exceptions'                                                                            || nl ||
                    '  lock_timeout     exception;'                                                              || nl ||
                    '  pragma exception_init(lock_timeout, -30006);    '
@@ -1575,8 +1603,24 @@ is
                    '                       fv_rebind  in boolean default false)'                                || nl ||
                    '  is'                                                                                       || nl ||
                    '    lc__    constant varchar2(100) := $$plsql_unit || ''.INSERT_ALL:'';'                    || nl ||
-                   '    lt_id            ArrID;'                                                                || nl ||
-                   '    i                pls_integer;'                                                          || nl ||
+                   '    lt_urowid        urowid_list;'                                                          || nl;
+      put_payload_pvt(lv_buffer);
+      i := fr_bundle.pk_element.first;
+      if (i is not null) then
+        lv_largest_cn := largest_colname_pvt(fr_bundle.pk_element);
+        i := fr_bundle.pk_element.next(i);    -- skip "R#WID"
+        while (i is not null) loop
+          lv_colid := lower(fr_bundle.pk_element(i).column_id);
+          lv_column := lower(fr_bundle.pk_element(i).column_name);
+          lv_rectype := fr_bundle.pk_element(i).record_type;
+          lv_ipad := lv_largest_cn - lengthb(lv_rectype);
+          lv_buffer := '    lt_pk' || trim(to_char(i-1, '000')) || '         pk' || trim(to_char(i-1, '000'))
+                       || '_list;   --' || trim(to_char(lv_colid, '000')) || ' ' || lv_column                   || nl;
+          put_payload_pvt(lv_buffer);
+          i := fr_bundle.pk_element.next(i);
+        end loop;
+      end if;
+      lv_buffer := '    i                pls_integer;'                                                          || nl ||
                    '  begin'                                                                                    || nl ||
                    '    ------------'                                                                           || nl ||
                    '    << sanity >>'                                                                           || nl ||
@@ -1660,16 +1704,36 @@ is
           lv_buffer := '        ' || lv_column || s# || ppvt(lv_ipad)
                        || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype                          || nl;
         end if;
-        if (i != fr_bundle.pk_element.last) then
-          lv_buffer := replace(lv_buffer, s#, ',');
-        else
+        if (i = fr_bundle.pk_element.last) then
           lv_buffer := replace(lv_buffer, s#, ' ');
+        else
+          lv_buffer := replace(lv_buffer, s#, ',');
         end if;
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '      bulk collect into lt_id;'                                                             || nl ||
-                   '    exception when others then'                                                             || nl ||
+      lv_buffer := '      bulk collect into'                                                                    || nl;
+      put_payload_pvt(lv_buffer);
+      i := fr_bundle.pk_element.first;
+      while (i is not null) loop
+        lv_colid := lower(fr_bundle.pk_element(i).column_id);
+        lv_column := lower(fr_bundle.pk_element(i).column_name);
+        lv_rectype := fr_bundle.pk_element(i).record_type;
+        if (i = fr_bundle.pk_element.first) then
+          lv_buffer := '        lt_urowid,' || ppvt(78) || '--000 urowid'                                       || nl;
+        else
+          lv_buffer := '        lt_pk' || trim(to_char(i-1, '000')) || s# || ppvt(78)
+                       || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype                          || nl;
+        end if;
+        if (i = fr_bundle.pk_element.last) then
+          lv_buffer := replace(lv_buffer, s#, ';');
+        else
+          lv_buffer := replace(lv_buffer, s#, ',');
+        end if;
+        put_payload_pvt(lv_buffer);
+        i := fr_bundle.pk_element.next(i);
+      end loop;
+      lv_buffer := '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< forall_call >>:'' '
                    || '|| $$plsql_line || nl || dbms_utility.format_error_stack);'                              || nl ||
                    '    end forall_call;'                                                                       || nl ||
@@ -1677,7 +1741,7 @@ is
                    '    << rebind >>'                                                                           || nl ||
                    '    ------------'                                                                           || nl ||
                    '    begin'                                                                                  || nl ||
-                   '      i := lt_id.first;'                                                                    || nl ||
+                   '      i := lt_urowid.first;'                                                                || nl ||
                    '      while (i is not null) loop'                                                           || nl;
       put_payload_pvt(lv_buffer);
       i := fr_bundle.pk_element.first;
@@ -1687,9 +1751,9 @@ is
         lv_rectype := fr_bundle.pk_element(i).record_type;
         lv_ipad := 60 - lengthb(lv_column);
         if (i = fr_bundle.pk_element.first) then
-          lv_buffer := '        ft_data(i).r#wid := lt_id(i).r#wid;' || ppvt(53) || '--000 urowid'              || nl;
+          lv_buffer := '        ft_data(i).r#wid := lt_urowid(i);' || ppvt(55) || '--000 urowid'          || nl;
         else
-          lv_buffer := '        ft_data(i).' || lv_column || ' := lt_id(i).' || lv_column || ';'
+          lv_buffer := '        ft_data(i).' || lv_column || ' := lt_pk' || trim(to_char(i-1, '000')) || '(i);'
                        || ppvt(lv_ipad) || ' --' || trim(to_char(lv_colid, '000')) || ' ' || lv_rectype         || nl;
         end if;
         put_payload_pvt(lv_buffer);
@@ -1699,12 +1763,12 @@ is
                    '          pragma inline (select_row_pvt, ''YES'');'                                         || nl ||
                    '          select_row_pvt(fr_data => ft_data(i));'                                           || nl ||
                    '        end if;'                                                                            || nl ||
-                   '        i := lt_id.next(i);'                                                                || nl ||
+                   '        i := lt_urowid.next(i);'                                                            || nl ||
                    '      end loop;'                                                                            || nl ||
                    '    exception when others then'                                                             || nl ||
                    '      raise_application_error(-20777, ''<< rebind >>:'' '
                    || ' || $$plsql_line || nl || dbms_utility.format_error_stack);'                             || nl ||
-                   '    end rebind;'                                                                         || nl ||
+                   '    end rebind;'                                                                            || nl ||
                    '  exception when others then'                                                               || nl ||
                    '    raise_application_error(-20777, lc__ || $$plsql_line || nl '
                    || '|| dbms_utility.format_error_stack);'                                                    || nl ||
@@ -2459,15 +2523,6 @@ is
                    '  ------------------------ Declare Session -------------------------'                       || nl ||
                    '  ------------------------------------------------------------------'                       || nl ||
                    '  gc_limit   constant pls_integer := 1e2; --FORALL collection limit: 100'                   || nl ||
-                   ''                                                                                           || nl ||
-                   '  -- pl/sql subtypes'                                                                       || nl ||
-                   '  subtype plstring    is varchar2(32767);'                                                  || nl ||
-                   '  subtype plraw       is raw(32767);'                                                       || nl ||
-                   ''                                                                                           || nl ||
-                   '  -- pl/sql types'                                                                          || nl ||
-                   '  type weak_refcursor is ref cursor;'                                                       || nl ||
-                   '  type plstring_list  is table of plstring index by pls_integer;'                           || nl ||
-                   '  type urowid_list    is table of urowid   index by pls_integer;'                           || nl ||
                    ''                                                                                           || nl ||
                    '  -- API types'                                                                             || nl;
       put_payload_pvt(lv_buffer);
