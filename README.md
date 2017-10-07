@@ -103,15 +103,6 @@ is
   ------------------------------------------------------------------
   gc_limit   constant pls_integer := 1e2; --FORALL collection limit: 100
 
-  -- pl/sql subtypes
-  subtype plstring    is varchar2(32767);
-  subtype plraw       is raw(32767);
-
-  -- pl/sql types
-  type weak_refcursor is ref cursor;
-  type plstring_list  is table of plstring index by pls_integer;
-  type urowid_list    is table of urowid   index by pls_integer;
-
   -- API types
   type RecID is record(r#wid    urowid,
                        id       number(38));
@@ -225,7 +216,7 @@ is
     return boolean;
 
 end r4v_customer_dml;
-```
+``` 
 ```sql
 create or replace package r4v_invoice_dml
 authid current_user
@@ -254,15 +245,6 @@ is
   ------------------------ Declare Session -------------------------
   ------------------------------------------------------------------
   gc_limit   constant pls_integer := 1e2; --FORALL collection limit: 100
-
-  -- pl/sql subtypes
-  subtype plstring    is varchar2(32767);
-  subtype plraw       is raw(32767);
-
-  -- pl/sql types
-  type weak_refcursor is ref cursor;
-  type plstring_list  is table of plstring index by pls_integer;
-  type urowid_list    is table of urowid   index by pls_integer;
 
   -- API types
   type RecID is record(r#wid    urowid,
@@ -377,7 +359,7 @@ is
     return boolean;
 
 end r4v_invoice_dml;
-```
+``` 
 ```sql
 create or replace package body r4v_customer_dml
 is
@@ -407,6 +389,18 @@ is
   -- Local constants
   nl       constant varchar2(3) := '
 ';
+
+  -- API implementation subtypes
+  subtype plstring    is varchar2(32767);
+  subtype plraw       is raw(32767);
+
+  -- API implementation types
+  type weak_refcursor is ref cursor;
+  type plstring_list  is table of plstring index by pls_integer;
+  type urowid_list    is table of urowid   index by pls_integer;
+
+  -- Arrays used in FORALL returning statements
+  type pk001_list is table of number(38)                          index by pls_integer;  --001 id
 
   -- Exceptions
   lock_timeout     exception;
@@ -774,7 +768,8 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.INSERT_ALL:';
-    lt_id            ArrID;
+    lt_urowid        urowid_list;
+    lt_pk001         pk001_list;   --001 id
     i                pls_integer;
   begin
     ------------
@@ -814,7 +809,9 @@ is
       returning
         rowid,                                                                                  --000 urowid
         id                                                                                      --001 number(38)
-      bulk collect into lt_id;
+      bulk collect into
+        lt_urowid,                                                                              --000 urowid
+        lt_pk001;                                                                               --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -822,15 +819,15 @@ is
     << rebind >>
     ------------
     begin
-      i := lt_id.first;
+      i := lt_urowid.first;
       while (i is not null) loop
-        ft_data(i).r#wid := lt_id(i).r#wid;                                                     --000 urowid
-        ft_data(i).id := lt_id(i).id;                                                           --001 number(38)
+        ft_data(i).r#wid := lt_urowid(i);                                                       --000 urowid
+        ft_data(i).id := lt_pk001(i);                                                           --001 number(38)
         if (fv_rebind) then
           pragma inline (select_row_pvt, 'YES');
           select_row_pvt(fr_data => ft_data(i));
         end if;
-        i := lt_id.next(i);
+        i := lt_urowid.next(i);
       end loop;
     exception when others then
       raise_application_error(-20777, '<< rebind >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -919,6 +916,7 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.UPDATE_ALL:';
+    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -953,7 +951,8 @@ is
              a.email = ft_data(i).email                                                         --004 varchar2(150 char)
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id;                                                              --001 number(38)
+         and a.id = ft_data(i).id                                                               --001 number(38)
+      returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1207,7 +1206,7 @@ begin
 exception when others then
   raise_application_error(-20777, $$plsql_unit || '<init>:'|| $$plsql_line || nl || dbms_utility.format_error_stack);
 end r4v_customer_dml;
-```
+``` 
 ```sql
 create or replace package body r4v_invoice_dml
 is
@@ -1237,6 +1236,18 @@ is
   -- Local constants
   nl       constant varchar2(3) := '
 ';
+
+  -- API implementation subtypes
+  subtype plstring    is varchar2(32767);
+  subtype plraw       is raw(32767);
+
+  -- API implementation types
+  type weak_refcursor is ref cursor;
+  type plstring_list  is table of plstring index by pls_integer;
+  type urowid_list    is table of urowid   index by pls_integer;
+
+  -- Arrays used in FORALL returning statements
+  type pk001_list is table of number(38)                          index by pls_integer;  --001 id
 
   -- Exceptions
   lock_timeout     exception;
@@ -1604,7 +1615,8 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.INSERT_ALL:';
-    lt_id            ArrID;
+    lt_urowid        urowid_list;
+    lt_pk001         pk001_list;   --001 id
     i                pls_integer;
   begin
     ------------
@@ -1644,7 +1656,9 @@ is
       returning
         rowid,                                                                                  --000 urowid
         id                                                                                      --001 number(38)
-      bulk collect into lt_id;
+      bulk collect into
+        lt_urowid,                                                                              --000 urowid
+        lt_pk001;                                                                               --001 number(38)
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -1652,15 +1666,15 @@ is
     << rebind >>
     ------------
     begin
-      i := lt_id.first;
+      i := lt_urowid.first;
       while (i is not null) loop
-        ft_data(i).r#wid := lt_id(i).r#wid;                                                     --000 urowid
-        ft_data(i).id := lt_id(i).id;                                                           --001 number(38)
+        ft_data(i).r#wid := lt_urowid(i);                                                       --000 urowid
+        ft_data(i).id := lt_pk001(i);                                                           --001 number(38)
         if (fv_rebind) then
           pragma inline (select_row_pvt, 'YES');
           select_row_pvt(fr_data => ft_data(i));
         end if;
-        i := lt_id.next(i);
+        i := lt_urowid.next(i);
       end loop;
     exception when others then
       raise_application_error(-20777, '<< rebind >>:'  || $$plsql_line || nl || dbms_utility.format_error_stack);
@@ -1749,6 +1763,7 @@ is
                        fv_rebind  in boolean default false)
   is
     lc__    constant varchar2(100) := $$plsql_unit || '.UPDATE_ALL:';
+    lt_urowid        urowid_list;
     i                pls_integer;
   begin
     ------------
@@ -1783,7 +1798,8 @@ is
              a.invoice_amount = ft_data(i).invoice_amount                                       --004 number(38,2)
        where 1e1 = 1e1
          and a.rowid = ft_data(i).r#wid                                                         --000 urowid
-         and a.id = ft_data(i).id;                                                              --001 number(38)
+         and a.id = ft_data(i).id                                                               --001 number(38)
+      returning rowid bulk collect into lt_urowid;
     exception when others then
       raise_application_error(-20777, '<< forall_call >>:' || $$plsql_line || nl || dbms_utility.format_error_stack);
     end forall_call;
@@ -2037,4 +2053,4 @@ begin
 exception when others then
   raise_application_error(-20777, $$plsql_unit || '<init>:'|| $$plsql_line || nl || dbms_utility.format_error_stack);
 end r4v_invoice_dml;
-```
+``` 
