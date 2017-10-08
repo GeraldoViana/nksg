@@ -1417,7 +1417,6 @@ is
                    '  is'                                                                                       || nl ||
                    '    lc__   constant varchar2(100) := $$plsql_unit || ''.EXISTS_ROW:'';'                     || nl ||
                    '  begin'                                                                                    || nl ||
-                   '    inspect_id_pvt(fr_id  => fr_id);'                                                       || nl ||
                    '    return exists_row_pvt(fr_id => fr_id);'                                                 || nl ||
                    '  exception when others then'                                                               || nl ||
                    '    raise_application_error(-20777, lc__ || $$plsql_line || nl '
@@ -1438,8 +1437,7 @@ is
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '    inspect_id_pvt(fr_id => lr_id);'                                                        || nl ||
-                   '    return exists_row_pvt(fr_id => lr_id);'                                                 || nl ||
+      lv_buffer := '    return exists_row_pvt(fr_id => lr_id);'                                                 || nl ||
                    '  exception when others then'                                                               || nl ||
                    '    raise_application_error(-20777, lc__ || $$plsql_line || nl '
                    || '|| dbms_utility.format_error_stack);'                                                    || nl ||
@@ -1471,8 +1469,7 @@ is
         put_payload_pvt(lv_buffer);
         i := fr_bundle.pk_element.next(i);
       end loop;
-      lv_buffer := '    inspect_id_pvt(fr_id => lr_id);'                                                        || nl ||
-                   '    if (fv_lock) then'                                                                      || nl ||
+      lv_buffer := '    if (fv_lock) then'                                                                      || nl ||
                    '      select_locking_pvt(fr_data => fr_data);'                                              || nl ||
                    '    else'                                                                                   || nl ||
                    '      select_row_pvt(fr_data => fr_data);'                                                  || nl ||
